@@ -1,38 +1,42 @@
-### 0x00: 前言
+### 0x00：前言
 
-本篇文章主要记录绕过一个基于php语言的上传漏洞的靶场项目[upload-labs](https://github.com/c0ny1/upload-labs) (最新commit[17ec936](https://github.com/c0ny1/upload-labs/commit/17ec93650d05d956e5868518cd6e8e36085ab2a3)的19个上传关卡的方法。
+本篇文章主要记录绕过一个基于php语言的上传漏洞的靶场项目[upload-labs](https://github.com/c0ny1/upload-labs) (最新commit[17ec936](https://github.com/c0ny1/upload-labs/commit/17ec93650d05d956e5868518cd6e8e36085ab2a3)) 的19个上传关卡的方法。
 
 文章适合有一定上传绕过知识基础的读者阅读，绕过原理请参考其它文章和项目源码，限于篇幅文章中不展开解释。
 
-### 0x01:测试配置
+### 0x01：目录
 
-| 操作系统            | Windows 10                         |
-| --------------- | ---------------------------------- |
-| **服务器环境**       | phpStudy 2016                      |
-| **PHP版本**       | 5.2.17                             |
-| **php.ini启用扩展** | extension=php_gd2.dll              |
-| **php.ini启用扩展** | extension=php_mbstring.dll         |
-| **php.ini启用扩展** | extension=php_exif.dll             |
-| **Firefox插件**   | NoScript                           |
-| **Firefox插件**   | HackBar                            |
-| **抓包工具**        | Burpsuite Pro                      |
-| **Webshell代码**  | <?php assert($_POST["LandGrey"])?> |
+[TOC]
 
-### 0x02: 绕过方法
+### 0x02：测试配置
 
-#### Pass-01：
+| 操作系统            | Windows 10                           |
+| :-------------- | :----------------------------------- |
+| **服务器环境**       | phpStudy 2016                        |
+| **PHP版本**       | 5.2.17                               |
+| **php.ini启用扩展** | extension=php_gd2.dll                |
+| **php.ini启用扩展** | extension=php_mbstring.dll           |
+| **php.ini启用扩展** | extension=php_exif.dll               |
+| **Firefox插件**   | NoScript                             |
+| **Firefox插件**   | HackBar                              |
+| **抓包工具**        | Burpsuite Pro                        |
+| **Webshell代码**  | `<?php assert($_POST["LandGrey"])?>` |
+
+### 0x03：绕过方法
+
+#### Pass-01
 
 前端禁用JS，直接上传Webshell
 
 ![](image/01-1.png)
 
-#### Pass-02：
+#### Pass-02
 
 截断上传数据包，修改Content-Type为`image/gif`，然后放行数据包
 
 ![](image/02-1.png)
 
-#### Pass-03：
+#### Pass-03
 
 重写文件解析规则绕过。上传先上传一个名为`.htaccess`文件，内容如下：
 
@@ -56,7 +60,7 @@ SetHandler application/x-httpd-php
 
 ![](image/03-3.png)
 
-#### Pass-04：
+#### Pass-04
 
 方法同**Pass-03**, 重写文件解析规则绕过
 
@@ -70,55 +74,55 @@ SetHandler application/x-httpd-php
 
 ![](image/04-3.png)
 
-#### Pass-05：
+#### Pass-05
 
 文件名后缀大小写混合绕过。`05.php`改成`05.phP`然后上传
 
 ![](image/05-1.png)
 
-#### Pass-06：
+#### Pass-06
 
 利用Windows系统的文件名特性。文件名最后增加**点和空格**，写成`06.php. `，上传后保存在Windows系统上的文件名最后的一个`.`会被去掉，实际上保存的文件名就是`06.php`
 
 ![](image/06-1.png)
 
-#### Pass-07：
+#### Pass-07
 
 原理同**Pass-06**，文件名后加点，改成`07.php.`
 
 ![](image/07-1.png)
 
-#### Pass-08：
+#### Pass-08
 
 Windows文件流特性绕过，文件名改成`08.php::$DATA`，上传成功后保存的文件名其实是`08.php`
 
 ![](image/08-1.png)
 
-#### Pass-09：
+#### Pass-09
 
 **原理同Pass-06**，上传文件名后加上**点+空格+点**，改为`09.php. .`
 
 ![](image/09-1.png)
 
-#### Pass-10：
+#### Pass-10
 
 双写文件名绕过，文件名改成`10.pphphp`
 
 ![](image/10-1.png)
 
-#### Pass-11：
+#### Pass-11
 
 上传路径名%00截断绕过。上传的文件名写成`11.jpg`, save_path改成`../upload/11.php%00`，最后保存下来的文件就是`11.php`
 
 ![](image/11-1.png)
 
-#### Pass-12：
+#### Pass-12
 
 原理同**Pass-11**，上传路径0x00绕过。利用Burpsuite的Hex功能将save_path改成`../upload/12.php【二进制00】`形式
 
 ![](image/12-1.png)
 
-#### Pass-13：
+#### Pass-13
 
 绕过文件头检查，添加GIF图片的文件头`GIF89a`，绕过GIF图片检查。
 
@@ -132,7 +136,7 @@ png图片处理方式同上。[PNG一句话shell参考示例](https://github.com
 
 ![](image/13-3.png)
 
-#### Pass-14：
+#### Pass-14
 
 原理和示例同**Pass-13**，添加GIF图片的文件头绕过检查
 
@@ -142,7 +146,7 @@ png图片webshell上传同**Pass-13**。
 
 jpg/jpeg图片webshell上传存在问题，正常的图片也上传不了，等待作者调整。
 
-#### Pass-15：
+#### Pass-15
 
 原理同**Pass-13**，添加GIF图片的文件头绕过检查
 
@@ -152,7 +156,7 @@ png图片webshell上传同**Pass-13**。
 
 jpg/jpeg图片webshell上传同**Pass-13**。
 
-#### Pass-16：
+#### Pass-16
 
 原理：将一个正常显示的图片，上传到服务器。寻找图片被渲染后与原始图片部分对比仍然相同的数据块部分，将Webshell代码插在该部分，然后上传。具体实现需要自己编写Python程序，人工尝试基本是不可能构造出能绕过渲染函数的图片webshell的。
 
@@ -178,7 +182,7 @@ jpg/jpeg图片webshell上传同**Pass-13**。
 
 ![](image/16-6.png)
 
-#### Pass-17：
+#### Pass-17
 
 利用条件竞争删除文件时间差绕过。使用命令`pip install hackhttp`安装[hackhttp](https://github.com/BugScanTeam/hackhttp)模块，运行下面的Python代码即可。如果还是删除太快，可以适当调整线程并发数。
 
@@ -231,19 +235,19 @@ pool.join()
 
 ![](image/17-1.png)
 
-#### Pass-18：
+#### Pass-18
 
-只需要把文件名改成`18.gif`即可上传
+原先理解错误，暂没找到方法绕过检测上传webshell的方式。
 
-![](image/18-1.png)
 
-#### Pass-19：
+
+#### Pass-19
 
 原理同**Pass-11**，上传的文件名用0x00绕过。改成`19.php【二进制00】.1.jpg`
 
 ![](image/19-1.png)
 
-### 0x03: 后记
+### 0x04：后记
 
 可以发现以上绕过方法中有些是重复的，有些是意外情况，可能与项目作者的本意不符，故本文仅作为参考使用。
 
