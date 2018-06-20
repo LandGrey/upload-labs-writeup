@@ -4,25 +4,18 @@
 
 文章适合有一定上传绕过知识基础的读者阅读，绕过原理请参考其它文章和项目源码，限于篇幅文章中不展开解释。
 
-### 0x01：目录
+### 0x01：测试配置
 
-[TOC]
+可直接下载作者的配置好的PHPStudy[靶场运行环境](https://github.com/c0ny1/upload-labs/releases)，节省时间。
 
-### 0x02：测试配置
+| 浏览器            | Firefox                              |
+| :------------- | :----------------------------------- |
+| **插件**         | NoScript                             |
+| **插件**         | HackBar                              |
+| **抓包工具**       | Burpsuite Pro                        |
+| **Webshell代码** | `<?php assert($_POST["LandGrey"])?>` |
 
-| 操作系统            | Windows 10                           |
-| :-------------- | :----------------------------------- |
-| **服务器环境**       | phpStudy 2016                        |
-| **PHP版本**       | 5.2.17                               |
-| **php.ini启用扩展** | extension=php_gd2.dll                |
-| **php.ini启用扩展** | extension=php_mbstring.dll           |
-| **php.ini启用扩展** | extension=php_exif.dll               |
-| **Firefox插件**   | NoScript                             |
-| **Firefox插件**   | HackBar                              |
-| **抓包工具**        | Burpsuite Pro                        |
-| **Webshell代码**  | `<?php assert($_POST["LandGrey"])?>` |
-
-### 0x03：绕过方法
+### 0x02：绕过方法
 
 #### Pass-01
 
@@ -60,19 +53,27 @@ SetHandler application/x-httpd-php
 
 ![](image/03-3.png)
 
+
+
 #### Pass-04
 
-方法同**Pass-03**, 重写文件解析规则绕过
+利用PHP 和 Windows环境的叠加特性，以下符号在正则匹配时的相等性：
+
+```
+双引号"     =   点号.
+大于符号>   =   问号?
+小于符号<   =   星号*
+```
+
+先上传一个名为`4.php:.jpg`的文件，上传成功后会生成`4.php`的空文件，大小为0KB.
 
 ![](image/04-1.png)
 
-
+然后将文件名改为`4.<`或`4.<<<`或`4.>>>`或`4.>><`后再次上传，重写`4.php`文件内容，Webshell代码就会写入原来的`4.php`空文件中。
 
 ![](image/04-2.png)
 
 
-
-![](image/04-3.png)
 
 #### Pass-05
 
@@ -117,6 +118,8 @@ Windows文件流特性绕过，文件名改成`08.php::$DATA`，上传成功后�
 ![](image/11-1.png)
 
 #### Pass-12
+
+php.ini设置 `magic_quotes_gpc = Off`
 
 原理同**Pass-11**，上传路径0x00绕过。利用Burpsuite的Hex功能将save_path改成`../upload/12.php【二进制00】`形式
 
@@ -259,7 +262,7 @@ pool.join()
 
 ![](image/19-1.png)
 
-### 0x04：后记
+### 0x03：后记
 
 可以发现以上绕过方法中有些是重复的，有些是意外情况，可能与项目作者的本意不符，故本文仅作为参考使用。
 
